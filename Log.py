@@ -1,0 +1,51 @@
+import time
+import psutil
+import re
+
+class Logging:
+
+    OUTPUT_DIR = "./Logs/"
+    LOGFILE = OUTPUT_DIR + "log.txt"
+
+    CONTINUERECORDING = True
+
+    file = None
+    pid = None
+    process = None
+
+
+    def __init__(self, pid):
+        self.file = open(self.LOGFILE, "w")
+        self.pid = pid
+        self.process = psutil.Process(self.pid)
+
+    def write_CPU_usage(self, timer):
+        cpu = psutil.cpu_percent()
+        owncpu = self.process.cpu_percent() / psutil.cpu_count()
+        self.file.write(str(timer) + "sec." + " CPU% (system): " + str(cpu) + "\n")
+        self.file.write(str(timer) + "sec." + " CPU% (" + str(self.pid) + "): " + str(owncpu) + "\n")
+         
+    def write_RAM_usage(self, timer):
+        ram = psutil.virtual_memory()
+        ram = re.findall("percent=\d+.\d+", str(ram)) 
+        ram = re.findall("\d+.\d", str(ram))
+
+        ownram = self.process.memory_percent()
+
+        self.file.write(str(timer) + "sec." + " RAM% (system): " + str(ram) + "\n")
+        self.file.write(str(timer) + "sec." + " RAM% (" + str(self.pid) + "): " + str(ownram) + "\n")
+
+    def startLog(self):
+        timer = 0
+
+        while self.CONTINUERECORDING:
+            self.write_CPU_usage(timer)
+            self.write_RAM_usage(timer)
+            print(str(timer))
+            time.sleep(1)
+            timer += 1
+
+        self.file.close()
+
+    def stopLog(self):
+        self.CONTINUERECORDING = False
