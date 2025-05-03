@@ -77,12 +77,7 @@ class Record:
         self.stream.close()
         self.p.terminate()
 
-        wf = wave.open(self.OUTPUT_DIR + self.WAVE_OUTPUT_FILENAME + str(fileIndexName) + ".wav", "wb")
-        wf.setnchannels(self.RESPEAKER_CHANNELS)
-        wf.setsampwidth(self.p.get_sample_size(self.p.get_format_from_width(self.RESPEAKER_WIDTH)))
-        wf.setframerate(self.RESPEAKER_RATE)
-        wf.writeframes(b''.join(frames))
-        wf.close()
+        self.writeFile(frames, fileIndexName)
 
         fileIndexName += 1
         
@@ -99,15 +94,19 @@ class Record:
         self.stream.close()
         self.p.terminate()
 
+        self.writeFile(frames, fileIndexName)
+
+        fileIndexName += 1
+
+
+    def writeFile(self, frames, fileIndexName):
         wf = wave.open(self.OUTPUT_DIR + self.WAVE_OUTPUT_FILENAME + str(fileIndexName) + ".wav", "wb")
         wf.setnchannels(self.RESPEAKER_CHANNELS)
         wf.setsampwidth(self.p.get_sample_size(self.p.get_format_from_width(self.RESPEAKER_WIDTH)))
         wf.setframerate(self.RESPEAKER_RATE)
         wf.writeframes(b''.join(frames))
         wf.close()
-
-        fileIndexName += 1
-
+        
 
     def stopRecording(self):
         self.CONTINUERECORDING = False
