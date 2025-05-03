@@ -1,26 +1,37 @@
+from tuning import Tuning
+
 import pyaudio
 import signal
 import wave
+import usb.core
+import usb.util
+import sys
+
 
 class Record:
     
+    # Recording Parameters
     RESPEAKER_RATE = 16000
     RESPEAKER_CHANNELS = 1
     RESPEAKER_WIDTH = 2
     RESPEAKER_INDEX = 11
     CHUNK = 1024
+    MIC_ARRAY_NAME = "ReSpeaker 4 Mic Array (UAC1.0)"
     #RECORD_SECONDS = 10
     
-    OUTPUT_DIR = "./Recs/"
-    WAVE_OUTPUT_FILENAME = "output"
-    MIC_ARRAY_NAME = "ReSpeaker 4 Mic Array (UAC1.0)"
-
-    CONTINUERECORDING = True
-    
+    # Used for Recording
     p = None
     micIndex = None
     stream = None
+    dev = None
+    voiceActivity = None
 
+    # File Output Settings
+    OUTPUT_DIR = "./Recs/"
+    WAVE_OUTPUT_FILENAME = "recording"
+
+
+    CONTINUERECORDING = True
 
     def __init__(self):
         self.p = pyaudio.PyAudio()
@@ -35,7 +46,15 @@ class Record:
             input_device_index=self.micIndex
         ) 
 
+        try:
+            self.dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
+        except:
+            print("Couldn't find Mic for Voice Activity Detection!")
+            sys.exit(1)
 
+        self.voiceActivity = Tuning(self.dev)
+
+    
     def getMic(self):
         numberDevices = self.p.get_host_api_info_by_index(0).get("deviceCount")
 
@@ -45,7 +64,30 @@ class Record:
                     return i
 
 
-    def startRecording(self):
+    def recordWithVoiceActivity(self):
+        fileIndexName = 0
+        frames = []
+
+        while self.CONTINUERECORDING:
+            if self.voiceActivity.is_voice():
+                data = self.stream.read(self.CHUNK, exception_on_overflow=False)
+                frames.append(data)
+
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
+
+        wf = wave.open(self.OUTPUT_DIR + self.WAVE_OUTPUT_FILENAME + str(fileIndexName) + ".wav", "wb")
+        wf.setnchannels(self.RESPEAKER_CHANNELS)
+        wf.setsampwidth(self.p.get_sample_size(self.p.get_format_from_width(self.RESPEAKER_WIDTH)))
+        wf.setframerate(self.RESPEAKER_RATE)
+        wf.writeframes(b''.join(frames))
+        wf.close()
+
+        fileIndexName += 1
+        
+        
+    def recordTillInterrupt(self):
         fileIndexName = 0
         frames = []
 

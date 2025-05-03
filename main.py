@@ -17,7 +17,8 @@ Log = Logging(os.getpid())
 
 signal.signal(signal.SIGINT, signalHandler)
 
-RecThread = threading.Thread(target=Rec.startRecording) 
+#RecThread = threading.Thread(target=Rec.recordTillInterrupt) 
+RecThread = threading.Thread(target=Rec.recordWithVoiceActivity) 
 LogThread = threading.Thread(target=Log.startLog)
 
 RecThread.start()
