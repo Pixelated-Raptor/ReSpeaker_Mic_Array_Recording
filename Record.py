@@ -59,7 +59,7 @@ class Record:
         numberDevices = self.p.get_host_api_info_by_index(0).get("deviceCount")
 
         for i in range(0, numberDevices):
-            if(self.p.get_device_info_by_host_api_device_index(0, 1).get("maxInputChannels")) > 0:
+            if(self.p.get_device_info_by_host_api_device_index(0, i).get("maxInputChannels")) > 0:
                 if(self.MIC_ARRAY_NAME in self.p.get_device_info_by_host_api_device_index(0, i).get("name")):
                     return i
 
@@ -80,6 +80,23 @@ class Record:
         self.writeFile(frames, fileIndexName)
 
         fileIndexName += 1
+
+
+    def recordOnlyDuringVoiceActivity(self):
+        fileIndexName = 0
+        frames = []
+
+        while self.CONTINUERECORDING:
+            if self.voiceActivity.is_voice():
+                data = self.stream.read(self.CHUNK, exception_on_overflow=False)
+                frames.append(data)
+            elif len(frames) > 0:
+                self.writeFile(frames, fileIndexName)
+                fileIndexName += 1
+
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
         
         
     def recordTillInterrupt(self):
