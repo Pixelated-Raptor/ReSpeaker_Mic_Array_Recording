@@ -15,7 +15,7 @@ class Record:
     RESPEAKER_CHANNELS = 1
     RESPEAKER_WIDTH = 2
     RESPEAKER_INDEX = 11
-    CHUNK = 1024
+    CHUNK = 2048
     MIC_ARRAY_NAME = "ReSpeaker 4 Mic Array (UAC1.0)"
     #RECORD_SECONDS = 10
     
