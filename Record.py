@@ -6,16 +6,19 @@ import wave
 import usb.core
 import usb.util
 import sys
+import time
 
 
 class Record:
     
     # Recording Parameters
+    FACTOR = 2
     RESPEAKER_RATE = 16000
     RESPEAKER_CHANNELS = 1
     RESPEAKER_WIDTH = 2
     RESPEAKER_INDEX = 11
-    CHUNK = 2048
+    CHUNK = 1024 * FACTOR
+    millisecondsChunk = 64 * FACTOR
     MIC_ARRAY_NAME = "ReSpeaker 4 Mic Array (UAC1.0)"
     #RECORD_SECONDS = 10
     
@@ -49,7 +52,7 @@ class Record:
         try:
             self.dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
         except:
-            print("Couldn't find Mic for Voice Activity Detection!")
+            print("Couldn't find mic for voice activity and angle detection!")
             sys.exit(1)
 
         self.voiceActivity = Tuning(self.dev)
@@ -127,3 +130,25 @@ class Record:
 
     def stopRecording(self):
         self.CONTINUERECORDING = False
+
+
+    def angleDetection(self):
+        while self.CONTINUERECORDING:
+            print("DOA: " + str(self.voiceActivity.direction))
+            time.sleep(1)
+        #return self.voiceActivity.direction
+
+
+    #--------
+
+
+    def singleChunk(self):    
+        data = self.stream.read(self.CHUNK, exception_on_overflow=False)
+        frames = []
+        frames.append(data)
+
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
+
+        self.writeFile(frames, 420)

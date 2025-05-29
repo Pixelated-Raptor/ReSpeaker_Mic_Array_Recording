@@ -21,9 +21,12 @@ signal.signal(signal.SIGINT, signalHandler)
 RecThread = threading.Thread(target=Rec.recordWithVoiceActivity) 
 #RecThread = threading.Thread(target=Rec.recordOnlyDuringVoiceActivity) 
 LogThread = threading.Thread(target=Log.startLog)
+DOAThread = threading.Thread(target=Rec.angleDetection)
 
 RecThread.start()
 LogThread.start()
+DOAThread.start()
 
 RecThread.join()
 LogThread.join()
+DOAThread.join()
