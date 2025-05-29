@@ -70,11 +70,14 @@ class Record:
     def recordWithVoiceActivity(self):
         fileIndexName = 0
         frames = []
+        duration = 0
 
         while self.CONTINUERECORDING:
             if self.voiceActivity.is_voice():
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 frames.append(data)
+                duration += self.millisecondsChunk
+                print("Duration: " + str(duration))
 
         self.stream.stop_stream()
         self.stream.close()
