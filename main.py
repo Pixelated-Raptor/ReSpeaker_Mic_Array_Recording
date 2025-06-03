@@ -5,10 +5,11 @@ import threading
 import signal
 import os
 
+
 def signalHandler(signum, frame):
     print("Stopping")
     Rec.stopRecording()
-    Log.stopLog()
+    Log.stop_Log()
 
 
 
@@ -17,11 +18,11 @@ Log = Logging(os.getpid())
 
 signal.signal(signal.SIGINT, signalHandler)
 
-#RecThread = threading.Thread(target=Rec.recordTillInterrupt) 
-RecThread = threading.Thread(target=Rec.recordWithVoiceActivity) 
-#RecThread = threading.Thread(target=Rec.recordOnlyDuringVoiceActivity) 
-LogThread = threading.Thread(target=Log.startLog)
-DOAThread = threading.Thread(target=Rec.angleDetection)
+RecThread = threading.Thread(target=Rec.record_till_Interrupt) 
+#RecThread = threading.Thread(target=Rec.record_With_Voice_Activity) 
+#RecThread = threading.Thread(target=Rec.record_only_during_Voice_Activity) 
+LogThread = threading.Thread(target=Log.start_Log)
+DOAThread = threading.Thread(target=Rec.angle_Detection)
 
 RecThread.start()
 LogThread.start()

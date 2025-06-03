@@ -2,6 +2,7 @@ import time
 import psutil
 import re
 
+
 class Logging:
 
     OUTPUT_DIR = "./Logs/"
@@ -19,12 +20,14 @@ class Logging:
         self.pid = pid
         self.process = psutil.Process(self.pid)
 
+
     def write_CPU_usage(self, timer):
         cpu = psutil.cpu_percent()
         owncpu = self.process.cpu_percent() / psutil.cpu_count()
         self.file.write(str(timer) + "sec." + " CPU% (system): " + str(cpu) + "\n")
         self.file.write(str(timer) + "sec." + " CPU% (" + str(self.pid) + "): " + str(owncpu) + "\n")
          
+
     def write_RAM_usage(self, timer):
         ram = psutil.virtual_memory()
         ram = re.findall("percent=\d+.\d+", str(ram)) 
@@ -35,7 +38,8 @@ class Logging:
         self.file.write(str(timer) + "sec." + " RAM% (system): " + str(ram) + "\n")
         self.file.write(str(timer) + "sec." + " RAM% (" + str(self.pid) + "): " + str(ownram) + "\n")
 
-    def startLog(self):
+
+    def start_Log(self):
         timer = 0
 
         while self.CONTINUERECORDING:
@@ -47,5 +51,6 @@ class Logging:
 
         self.file.close()
 
-    def stopLog(self):
+
+    def stop_Log(self):
         self.CONTINUERECORDING = False

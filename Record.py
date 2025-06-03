@@ -24,10 +24,11 @@ class Record:
     
     # Used for Recording
     p = None
-    micIndex = None
+    mic_index = None
     stream = None
     dev = None
-    voiceActivity = None
+    voice_activity = None
+    voice_direction = None
 
     # File Output Settings
     OUTPUT_DIR = "./Recs/"
@@ -36,17 +37,18 @@ class Record:
 
     CONTINUERECORDING = True
 
+
     def __init__(self):
         self.p = pyaudio.PyAudio()
         
-        self.micIndex = self.getMic()
+        self.mic_index = self.get_Mic()
         
         self.stream = self.p.open(
             rate=self.RESPEAKER_RATE,
             format=self.p.get_format_from_width(self.RESPEAKER_WIDTH),
             channels=self.RESPEAKER_CHANNELS,
             input=True,
-            input_device_index=self.micIndex
+            input_device_index=self.mic_index
         ) 
 
         try:
@@ -55,10 +57,10 @@ class Record:
             print("Couldn't find mic for voice activity and angle detection!")
             sys.exit(1)
 
-        self.voiceActivity = Tuning(self.dev)
+        self.voice_activity = Tuning(self.dev)
 
     
-    def getMic(self):
+    def get_Mic(self):
         numberDevices = self.p.get_host_api_info_by_index(0).get("deviceCount")
 
         for i in range(0, numberDevices):
@@ -67,13 +69,13 @@ class Record:
                     return i
 
 
-    def recordWithVoiceActivity(self):
+    def record_With_Voice_Activity(self):
         fileIndexName = 0
         frames = []
         duration = 0
 
         while self.CONTINUERECORDING:
-            if self.voiceActivity.is_voice():
+            if self.voice_activity.is_voice():
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 frames.append(data)
                 duration += self.millisecondsChunk
@@ -83,21 +85,21 @@ class Record:
         self.stream.close()
         self.p.terminate()
 
-        self.writeFile(frames, fileIndexName)
+        self.write_File(frames, fileIndexName)
 
         fileIndexName += 1
 
 
-    def recordOnlyDuringVoiceActivity(self):
+    def record_only_during_Voice_Activity(self):
         fileIndexName = 0
         frames = []
 
         while self.CONTINUERECORDING:
-            if self.voiceActivity.is_voice():
+            if self.voice_activity.is_voice():
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 frames.append(data)
             elif len(frames) > 0:
-                self.writeFile(frames, fileIndexName)
+                self.write_File(frames, fileIndexName)
                 fileIndexName += 1
 
         self.stream.stop_stream()
@@ -105,7 +107,7 @@ class Record:
         self.p.terminate()
         
         
-    def recordTillInterrupt(self):
+    def record_till_Interrupt(self):
         fileIndexName = 0
         frames = []
 
@@ -117,12 +119,12 @@ class Record:
         self.stream.close()
         self.p.terminate()
 
-        self.writeFile(frames, fileIndexName)
+        self.write_File(frames, fileIndexName)
 
         fileIndexName += 1
 
 
-    def writeFile(self, frames, fileIndexName):
+    def write_File(self, frames, fileIndexName):
         wf = wave.open(self.OUTPUT_DIR + self.WAVE_OUTPUT_FILENAME + str(fileIndexName) + ".wav", "wb")
         wf.setnchannels(self.RESPEAKER_CHANNELS)
         wf.setsampwidth(self.p.get_sample_size(self.p.get_format_from_width(self.RESPEAKER_WIDTH)))
@@ -131,21 +133,19 @@ class Record:
         wf.close()
         
 
-    def stopRecording(self):
+    def stop_Recording(self):
         self.CONTINUERECORDING = False
 
 
-    def angleDetection(self):
+    def angle_Detection(self):
         while self.CONTINUERECORDING:
-            print("DOA: " + str(self.voiceActivity.direction))
+            self.voice_direction = self.voice_activity.direction
+            print("DOA: " + str(self.voice_activity.direction))
             time.sleep(1)
-        #return self.voiceActivity.direction
+        return self.voice_activity.direction
 
 
-    #--------
-
-
-    def singleChunk(self):    
+    def record_single_Chunk(self):    
         data = self.stream.read(self.CHUNK, exception_on_overflow=False)
         frames = []
         frames.append(data)
@@ -154,4 +154,4 @@ class Record:
         self.stream.close()
         self.p.terminate()
 
-        self.writeFile(frames, 420)
+        self.write_File(frames, 420)
