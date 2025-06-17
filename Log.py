@@ -1,12 +1,13 @@
 import time
 import psutil
 import re
+import yaml
 
 
 class Logging:
 
-    OUTPUT_DIR = "./Logs/"
-    LOGFILE = OUTPUT_DIR + "log.txt"
+    #OUTPUT_DIR = "./Logs/"
+    #LOGFILE = OUTPUT_DIR + "log.txt"
 
     CONTINUERECORDING = True
 
@@ -14,9 +15,19 @@ class Logging:
     pid = None
     process = None
 
+    CONFIG_FILE = "config.yml"
+    config = None
 
     def __init__(self, pid):
-        self.file = open(self.LOGFILE, "w")
+        try:
+            with open(self.CONFIG_FILE, "r") as config_file:
+                self.config = list(yaml.safe_load_all(config_file))
+                self.config = self.config[1]
+        except:
+            print("Failed to load or parse config.yml in Log.py!")
+
+        
+        self.file = open(self.config["Logging"]["log_output"], "w")
         self.pid = pid
         self.process = psutil.Process(self.pid)
 

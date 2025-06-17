@@ -1,5 +1,5 @@
 ---
-MicrophoneSettings:
+Recording:
   rate: 16000
   channels: 1
   width: 2
@@ -7,9 +7,9 @@ MicrophoneSettings:
   mic_name: "ReSpeaker 4 Mic Array (UAC1.0)"
   idVendor: 0x2886
   idProduct: 0x0018
+  wave_output: "./Output/recording.wav"
+  angle_output: "./Output/angle.txt"
+  split_output: "./Output/chunk%03d.wav"
 ---
-FileOutput:
-  output_dir: "./Output/"
-  wave_output: "recording.wav"
-  log_output: "log.txt"
-  angle_output: "angle.txt"
+Logging:
+  log_output: "./Output/log.txt"
