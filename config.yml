@@ -10,6 +10,9 @@ Recording:
   wave_output: "./Output/recording.wav"
   angle_output: "./Output/angle.txt"
   split_output: "./Output/chunk%03d.wav"
+  split_length_sec: 30
+  overlap_length_sec: 3
+  live_split_output: "./Output/split"
 ---
 Logging:
   log_output: "./Output/log.txt"

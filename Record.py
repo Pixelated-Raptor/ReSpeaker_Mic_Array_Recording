@@ -31,6 +31,10 @@ class Record:
 
     CONTINUERECORDING = True
 
+    frames = []
+    all_frames = []
+
+    split_index = 0
 
     def __init__(self):
         try:
@@ -76,24 +80,33 @@ class Record:
         
     def record_till_Interrupt(self):
         """Record continously."""
-
-        frames = []
-
         while self.CONTINUERECORDING:
             data = self.stream.read(self.config["Recording"]["chunk"])
-            frames.append(data)
+            self.frames.append(data)
+            self.all_frames.append(data)
 
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
 
-        self.write_File(frames)
+        self.write_File()
 
 
-    def write_File(self, frames):
+    def write_File(self):
         """Write recording to a file."""
 
         wf = wave.open(self.config["Recording"]["wave_output"], "wb")
+        wf.setnchannels(self.config["Recording"]["channels"])
+        wf.setsampwidth(self.p.get_sample_size(self.p.get_format_from_width(self.config["Recording"]["width"])))
+        wf.setframerate(self.config["Recording"]["rate"])
+        wf.writeframes(b''.join(self.all_frames))
+        wf.close()
+        
+
+    def write_Frames(self, frames):
+        """Write frames to a file."""
+
+        wf = wave.open(self.config["Recording"]["live_split_output"] + str(self.split_index) + ".wav", "wb")
         wf.setnchannels(self.config["Recording"]["channels"])
         wf.setsampwidth(self.p.get_sample_size(self.p.get_format_from_width(self.config["Recording"]["width"])))
         wf.setframerate(self.config["Recording"]["rate"])
@@ -149,3 +162,16 @@ class Record:
         for i in range(numberDevices):
             device_info = self.p.get_device_info_by_host_api_device_index(0, i)
             print(f"Device {i}: {device_info['name']}, Channels: {device_info['maxInputChannels']}")
+
+            
+    def split_live(self):
+        chunks_per_second = self.config["Recording"]["rate"] / self.config["Recording"]["chunk"]
+        chunks_per_split = int(self.config["Recording"]["split_length_sec"] * chunks_per_second)
+        chunks_per_overlap = int(self.config["Recording"]["overlap_length_sec"] * chunks_per_second)
+
+        # Keep spliting, as long as enough data is available
+        while len(self.frames) >= chunks_per_split:
+            self.write_Frames(self.frames[:chunks_per_split])
+            self.split_index += 1
+            self.frames = self.frames[chunks_per_split - chunks_per_overlap:]
+
